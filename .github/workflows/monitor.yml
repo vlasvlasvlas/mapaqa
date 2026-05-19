@@ -1,0 +1,42 @@
+name: mapaqa monitor
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'   # cada 4 horas
+  workflow_dispatch:          # ejecución manual desde Actions
+
+permissions:
+  pages: write
+  id-token: write
+
+jobs:
+  monitor-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Run mapaqa
+        run: python3 mapaqa.py
+
+      - name: Prepare index for Pages
+        run: cp output/mapaqa_report.html output/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: output/
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
