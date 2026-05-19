@@ -1,0 +1,8 @@
+timestamp,country,id,label,url,ok,warn,status_code,elapsed_ms,issues,warnings,datasets_total,datasets_stale
+2026-05-19 19:47 UTC,DO,do-home,MapaInversiones RD — Home,https://mapainversiones.gob.do/,1,0,200,4860,,,0,0
+2026-05-19 19:47 UTC,DO,do-datos-abiertos,MapaInversiones RD — Datos Abiertos,https://mapainversiones.gob.do/DatosAbiertos,1,1,200,255,,7/15 datasets desactualizados (47%),15,7
+2026-05-19 19:47 UTC,DO,do-mapa,MapaInversiones RD — Mapa de Inversión,https://mapainversiones.gob.do/MapView,1,0,200,2475,,,0,0
+2026-05-19 19:47 UTC,DO,do-contratos,MapaInversiones RD — Contratos,https://mapainversiones.gob.do/contratos,1,0,200,6565,,,0,0
+2026-05-19 19:47 UTC,DO,do-presupuesto,MapaInversiones RD — Presupuesto,https://mapainversiones.gob.do/PresupuestoGeneral,1,0,200,471,,,0,0
+2026-05-19 19:47 UTC,PY,py-home,Rindiendo Cuentas PY — Home,https://rindiendocuentas.gov.py/,0,0,,,conexión fallida: [Errno 61] Connection refused,,0,0
+2026-05-19 19:47 UTC,PY,py-fuentes,Rindiendo Cuentas PY — Fuentes de datos,https://rindiendocuentas.gov.py/,0,0,,,conexión fallida: [Errno 61] Connection refused,,0,0

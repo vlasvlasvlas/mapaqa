@@ -28,9 +28,6 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Salidas generadas
-mapaqa_report.html
-
 # Config legada
 checkpoints.json
 

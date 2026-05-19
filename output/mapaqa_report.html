@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>mapaqa — estado</title>
+<style>
+:root{
+  --ok:#16a34a;--ok-bg:#f0fdf4;--ok-br:#bbf7d0;
+  --warn:#d97706;--warn-bg:#fffbeb;--warn-br:#fde68a;
+  --fail:#dc2626;--fail-bg:#fef2f2;--fail-br:#fecaca;
+  --border:#e5e7eb;--text:#111827;--muted:#6b7280;
+  --bg:#f3f4f6;--card:#fff;
+  --font:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);
+     padding:2rem;font-size:14px;line-height:1.5;max-width:1000px;margin:0 auto}
+h1{font-size:1.375rem;font-weight:700}
+.ts{color:var(--muted);font-size:.8rem;margin-top:.25rem}
+
+/* global summary chips */
+.summary{display:flex;gap:.75rem;margin:1.5rem 0;flex-wrap:wrap}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:8px;
+    padding:.75rem 1.25rem;min-width:110px}
+.sc .n{font-size:1.75rem;font-weight:700;line-height:1}
+.sc .l{font-size:.7rem;color:var(--muted);text-transform:uppercase;
+       letter-spacing:.06em;margin-top:.2rem}
+
+/* country card */
+.country{background:var(--card);border:1px solid var(--border);
+         border-radius:10px;margin-bottom:1.25rem;overflow:hidden}
+
+/* card header — always visible */
+.ch{display:grid;grid-template-columns:auto 1fr auto;align-items:center;
+    gap:1rem;padding:.9rem 1.25rem;background:#f8fafc;
+    border-bottom:1px solid var(--border)}
+.ch-id{display:flex;align-items:center;gap:.5rem}
+.flag{font-size:1.5rem;line-height:1}
+.cc{font-size:1rem;font-weight:700;letter-spacing:.04em}
+.cl{color:var(--muted);font-size:.78rem;text-decoration:none;word-break:break-all}
+.cl:hover{color:#2563eb;text-decoration:underline}
+.ch-stats{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+
+/* freshness summary line inside header */
+.fresh{font-size:.8rem;color:var(--muted)}
+.fresh strong{color:var(--text)}
+
+/* collapsible sections */
+details{border-top:1px solid var(--border)}
+summary{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.6rem 1.25rem;cursor:pointer;
+  font-size:.75rem;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;
+  user-select:none;list-style:none;background:#fafafa;
+}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"▶";font-size:.55rem;transition:transform .15s;color:var(--muted)}
+details[open]>summary::before{transform:rotate(90deg)}
+summary .cnt{background:#e5e7eb;border-radius:99px;padding:.05rem .45rem;
+             font-size:.68rem;color:var(--text);font-weight:700}
+
+/* tables */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:.4rem 1.25rem;font-size:.68rem;color:var(--muted);
+   text-transform:uppercase;letter-spacing:.06em;
+   border-bottom:1px solid var(--border);background:#fafafa;white-space:nowrap}
+td{padding:.55rem 1.25rem;border-bottom:1px solid #f3f4f6;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.cp-name{font-weight:500}
+
+/* badges */
+.badge{display:inline-block;padding:.15rem .55rem;border-radius:99px;
+       font-size:.7rem;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.b-ok  {background:var(--ok-bg);  color:var(--ok);  border:1px solid var(--ok-br)}
+.b-warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-br)}
+.b-fail{background:var(--fail-bg);color:var(--fail);border:1px solid var(--fail-br)}
+
+.ms{color:var(--muted);font-variant-numeric:tabular-nums;font-size:.8rem;white-space:nowrap}
+.note{color:var(--fail);font-size:.78rem}
+.warn-note{color:var(--warn);font-size:.78rem}
+.cp-link{color:var(--text);text-decoration:none;font-weight:500}
+.cp-link:hover{color:#2563eb;text-decoration:underline}
+.recheck{color:var(--muted);text-decoration:none;font-size:.9rem;margin-left:.25rem;
+         opacity:.5;transition:opacity .15s}
+.recheck:hover{opacity:1;color:#2563eb}
+
+/* dataset age coloring */
+.a-ok  {color:var(--ok);  font-weight:600}
+.a-warn{color:var(--warn);font-weight:600}
+.a-fail{color:var(--fail);font-weight:700}
+
+/* dataset name + entity */
+.ds-name{display:block;font-weight:500;font-size:.82rem}
+.ds-entity{display:block;font-size:.72rem;color:var(--muted);margin-top:.1rem}
+.muted-sm{color:var(--muted);font-size:.75rem}
+
+/* download links */
+.dl-link{display:inline-flex;align-items:center;gap:.2rem;padding:.1rem .45rem;
+         border-radius:4px;font-size:.7rem;font-weight:600;text-decoration:none;
+         margin-right:.25rem;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe}
+.dl-link::before{content:"🔗";font-size:.6rem}
+.dl-link:hover{background:#dbeafe}
+
+/* sortable headers */
+th[data-col]{cursor:pointer;user-select:none;white-space:nowrap}
+th[data-col]:hover{background:#f0f0f0}
+.si{display:inline-block;margin-left:.3rem;font-size:.65rem;color:var(--muted);
+    vertical-align:middle;font-weight:400}
+</style>
+</head>
+<body>
+<h1>mapaqa</h1>
+<p class="ts">Estado de plataformas &nbsp;·&nbsp; 2026-05-19 19:47 UTC</p>
+<div class="summary"><div class="sc"><div class="n" style="color:var(--ok)">1</div><div class="l">Plataformas OK</div></div><div class="sc"><div class="n" style="color:var(--fail)">1</div><div class="l">Con problemas</div></div><div class="sc"><div class="n" style="color:var(--ok)">8</div><div class="l">Actualizados</div></div><div class="sc"><div class="n" style="color:var(--fail)">7</div><div class="l">No actualizados</div></div></div><div class="country"><div class="ch"><div class="ch-id"><span class="flag">🇩🇴</span><span class="cc">DO</span></div><div><a href="https://mapainversiones.gob.do/" class="cl" target="_blank">https://mapainversiones.gob.do/</a></div><div class="ch-stats"><span class="badge b-ok">5/5 checks</span>&nbsp;<span class="fresh">Últ. actualización: <strong>19-05-2026</strong> &nbsp;·&nbsp; <span class="a-ok"><strong>0</strong> días</span></span> <span class="badge b-fail">⚠ 7 datasets desactualizados</span></div></div><details><summary>Checks <span class="cnt">5</span></summary><table><thead><tr><th>URL / Sección</th><th>Estado</th><th>Tiempo</th><th>Notas</th></tr></thead><tbody><tr><td><a href="https://mapainversiones.gob.do/" target="_blank" class="cp-link">Home</a>&nbsp;<a href="https://mapainversiones.gob.do/" target="_blank" class="recheck" title="Abrir y verificar manualmente">⟳</a></td><td><span class="badge b-ok">OK</span></td><td class="ms">4860&nbsp;ms</td><td></td></tr><tr><td><a href="https://mapainversiones.gob.do/DatosAbiertos" target="_blank" class="cp-link">Datos Abiertos</a>&nbsp;<a href="https://mapainversiones.gob.do/DatosAbiertos" target="_blank" class="recheck" title="Abrir y verificar manualmente">⟳</a></td><td><span class="badge b-warn">WARN</span></td><td class="ms">255&nbsp;ms</td><td><span class="warn-note">7/15 datasets desactualizados (47%)</span></td></tr><tr><td><a href="https://mapainversiones.gob.do/MapView" target="_blank" class="cp-link">Mapa de Inversión</a>&nbsp;<a href="https://mapainversiones.gob.do/MapView" target="_blank" class="recheck" title="Abrir y verificar manualmente">⟳</a></td><td><span class="badge b-ok">OK</span></td><td class="ms">2475&nbsp;ms</td><td></td></tr><tr><td><a href="https://mapainversiones.gob.do/contratos" target="_blank" class="cp-link">Contratos</a>&nbsp;<a href="https://mapainversiones.gob.do/contratos" target="_blank" class="recheck" title="Abrir y verificar manualmente">⟳</a></td><td><span class="badge b-ok">OK</span></td><td class="ms">6565&nbsp;ms</td><td></td></tr><tr><td><a href="https://mapainversiones.gob.do/PresupuestoGeneral" target="_blank" class="cp-link">Presupuesto</a>&nbsp;<a href="https://mapainversiones.gob.do/PresupuestoGeneral" target="_blank" class="recheck" title="Abrir y verificar manualmente">⟳</a></td><td><span class="badge b-ok">OK</span></td><td class="ms">471&nbsp;ms</td><td></td></tr></tbody></table></details><details open><summary>Open Data <span class="cnt">15</span> <span class="badge b-fail">7 desactualizados</span></summary><table><thead><tr><th>Dataset / Entidad</th><th>Últ. actualización</th><th data-col="2">Días<span class="si">⇅</span></th><th>Recursos</th><th data-col="4">Estado<span class="si">⇅</span></th></tr></thead><tbody><tr><td><span class="ds-name">Proyectos de inversión</span><span class="ds-entity">Ministerio de Economía, Planificación y Desarrollo</span></td><td class="ms">18-05-2026</td><td class="a-ok" data-sort="1"><strong>1</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosAbiertosProyectosDeInversion.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosAbiertosProyectosDeInversion_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="0"><span class="badge b-ok">OK</span></td></tr><tr><td><span class="ds-name">Proyectos de inversión por territorio</span><span class="ds-entity">Ministerio de Economía, Planificación y Desarrollo</span></td><td class="ms">18-05-2026</td><td class="a-ok" data-sort="1"><strong>1</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosAbiertosProyectosDeInversionXTerritorio.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosAbiertosProyectosDeInversionXTerritorio_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="0"><span class="badge b-ok">OK</span></td></tr><tr><td><span class="ds-name">Proyectos de inversión por fuente de financiación</span><span class="ds-entity">Ministerio de Economía, Planificación y Desarrollo</span></td><td class="ms">18-05-2026</td><td class="a-ok" data-sort="1"><strong>1</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosAbiertosProyectosDeInversionXFuenteFinanciacion.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosAbiertosProyectosDeInversionXFuenteFinanciacion_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="0"><span class="badge b-ok">OK</span></td></tr><tr><td><span class="ds-name">Presupuesto Hacienda</span><span class="ds-entity">Ministerio de Hacienda</span></td><td class="ms">18-05-2026</td><td class="a-ok" data-sort="1"><strong>1</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosabiertosPresupuestoHacienda.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosabiertosPresupuestoHacienda_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="0"><span class="badge b-ok">OK</span></td></tr><tr><td><span class="ds-name">Procesos</span><span class="ds-entity">Dirección General de Contrataciones Públicas</span></td><td class="ms">19-05-2026</td><td class="a-ok" data-sort="0"><strong>0</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosAbiertosProcesosXProyectosInv.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosabiertosProcesosXProyectosInv_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="0"><span class="badge b-ok">OK</span></td></tr><tr><td><span class="ds-name">Contratos</span><span class="ds-entity">Dirección General de Contrataciones Públicas</span></td><td class="ms">19-05-2026</td><td class="a-ok" data-sort="0"><strong>0</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosAbiertosContratosXProyectosInv.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosabiertosContratosXProyectosInv_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="0"><span class="badge b-ok">OK</span></td></tr><tr><td><span class="ds-name">Presupuesto</span><span class="ds-entity">Ministerio de Hacienda</span></td><td class="ms">18-05-2026</td><td class="a-ok" data-sort="1"><strong>1</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosAbiertosPresupuestoXProyInv.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosabiertosPresupuestoXProyInv_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="0"><span class="badge b-ok">OK</span></td></tr><tr><td><span class="ds-name">Presupuesto emergencias</span><span class="ds-entity">Ministerio de Hacienda</span></td><td class="ms">18-05-2026</td><td class="a-ok" data-sort="1"><strong>1</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/PresupuestoEmergencias.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/PresupuestoEmergencias_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="0"><span class="badge b-ok">OK</span></td></tr><tr><td><span class="ds-name">Apropiación presupuestaria</span><span class="ds-entity">Dirección General de Contrataciones Públicas</span></td><td class="ms">27-05-2024</td><td class="a-fail" data-sort="722"><strong>722</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosAbiertosApropiacionPresupEmergencias.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosAbiertosApropiacionPresupEmergencias_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="2"><span class="badge b-fail">DESACTUALIZADO</span></td></tr><tr><td><span class="ds-name">Artículos contratos</span><span class="ds-entity">Dirección General de Contrataciones Públicas</span></td><td class="ms">27-05-2024</td><td class="a-fail" data-sort="722"><strong>722</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosAbiertosContratosArticulosEmergencias.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosAbiertosContratosArticulosEmergencias_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="2"><span class="badge b-fail">DESACTUALIZADO</span></td></tr><tr><td><span class="ds-name">Artículos procesos</span><span class="ds-entity">Dirección General de Contrataciones Públicas</span></td><td class="ms">27-05-2024</td><td class="a-fail" data-sort="722"><strong>722</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosAbiertosProcesosArticulosEmergencias.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosAbiertosProcesosArticulosEmergencias_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="2"><span class="badge b-fail">DESACTUALIZADO</span></td></tr><tr><td><span class="ds-name">Contratos</span><span class="ds-entity">Dirección General de Contrataciones Públicas</span></td><td class="ms">27-05-2024</td><td class="a-fail" data-sort="722"><strong>722</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosAbiertosContratosEmergencias.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosAbiertosContratosEmergencias_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="2"><span class="badge b-fail">DESACTUALIZADO</span></td></tr><tr><td><span class="ds-name">Ofertas</span><span class="ds-entity">Dirección General de Contrataciones Públicas</span></td><td class="ms">27-05-2024</td><td class="a-fail" data-sort="722"><strong>722</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosAbiertosOfertasEmergencias.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosAbiertosOfertasEmergencias_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="2"><span class="badge b-fail">DESACTUALIZADO</span></td></tr><tr><td><span class="ds-name">Procesos</span><span class="ds-entity">Dirección General de Contrataciones Públicas</span></td><td class="ms">27-05-2024</td><td class="a-fail" data-sort="722"><strong>722</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosAbiertosProcesosEmergencias.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosAbiertosProcesosEmergencias_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="2"><span class="badge b-fail">DESACTUALIZADO</span></td></tr><tr><td><span class="ds-name">Proveedores</span><span class="ds-entity">Dirección General de Contrataciones Públicas</span></td><td class="ms">27-05-2024</td><td class="a-fail" data-sort="722"><strong>722</strong> días</td><td><a href="https://mapainversiones.gob.do/opendata/DatosAbiertosProveedoresEmergencias.csv" target="_blank" class="dl-link"></a> <a href="https://mapainversiones.gob.do/opendata/DatosAbiertosProveedoresEmergencias_Diccionario.xlsx" target="_blank" class="dl-link"></a></td><td data-sort="2"><span class="badge b-fail">DESACTUALIZADO</span></td></tr></tbody></table></details></div>
+<div class="country"><div class="ch"><div class="ch-id"><span class="flag">🇵🇾</span><span class="cc">PY</span></div><div><a href="https://rindiendocuentas.gov.py/" class="cl" target="_blank">https://rindiendocuentas.gov.py/</a></div><div class="ch-stats"><span class="badge b-fail">0/2 checks</span>&nbsp;</div></div><details open><summary>Checks <span class="cnt">2</span></summary><table><thead><tr><th>URL / Sección</th><th>Estado</th><th>Tiempo</th><th>Notas</th></tr></thead><tbody><tr><td><a href="https://rindiendocuentas.gov.py/" target="_blank" class="cp-link">Home</a>&nbsp;<a href="https://rindiendocuentas.gov.py/" target="_blank" class="recheck" title="Abrir y verificar manualmente">⟳</a></td><td><span class="badge b-fail">FALLO</span></td><td class="ms">—</td><td><span class="note">conexión fallida: [Errno 61] Connection refused</span></td></tr><tr><td><a href="https://rindiendocuentas.gov.py/" target="_blank" class="cp-link">Fuentes de datos</a>&nbsp;<a href="https://rindiendocuentas.gov.py/" target="_blank" class="recheck" title="Abrir y verificar manualmente">⟳</a></td><td><span class="badge b-fail">FALLO</span></td><td class="ms">—</td><td><span class="note">conexión fallida: [Errno 61] Connection refused</span></td></tr></tbody></table></details></div>
+<script>
+(function(){
+  var DIAS_COL   = 2;
+  var STATUS_COL = 4;
+
+  function sortRows(table, col, dir) {
+    var tbody = table.querySelector('tbody');
+    if (!tbody) return;
+    var rows = Array.from(tbody.querySelectorAll('tr'));
+    var mul  = dir === 'asc' ? 1 : -1;
+    rows.sort(function(a, b){
+      var av = parseFloat(a.cells[col] && a.cells[col].dataset.sort) || 0;
+      var bv = parseFloat(b.cells[col] && b.cells[col].dataset.sort) || 0;
+      return (av - bv) * mul;
+    });
+    rows.forEach(function(r){ tbody.appendChild(r); });
+  }
+
+  function defaultSort(table) {
+    var tbody = table.querySelector('tbody');
+    if (!tbody) return;
+    var rows = Array.from(tbody.querySelectorAll('tr'));
+    rows.sort(function(a, b){
+      var as = parseFloat(a.cells[STATUS_COL] && a.cells[STATUS_COL].dataset.sort) || 0;
+      var bs = parseFloat(b.cells[STATUS_COL] && b.cells[STATUS_COL].dataset.sort) || 0;
+      if (as !== bs) return as - bs;
+      var ad = parseFloat(a.cells[DIAS_COL] && a.cells[DIAS_COL].dataset.sort) || 0;
+      var bd = parseFloat(b.cells[DIAS_COL] && b.cells[DIAS_COL].dataset.sort) || 0;
+      return ad - bd;
+    });
+    rows.forEach(function(r){ tbody.appendChild(r); });
+  }
+
+  document.querySelectorAll('th[data-col]').forEach(function(th){
+    th.addEventListener('click', function(){
+      var table = this.closest('table');
+      var col   = parseInt(this.dataset.col);
+      var prev  = this.dataset.dir;
+      var dir   = prev === 'asc' ? 'desc' : 'asc';
+      table.querySelectorAll('th[data-col]').forEach(function(h){
+        h.dataset.dir = '';
+        var si = h.querySelector('.si');
+        if (si) si.textContent = '⇅';
+      });
+      this.dataset.dir = dir;
+      var si = this.querySelector('.si');
+      if (si) si.textContent = dir === 'asc' ? '↑' : '↓';
+      sortRows(table, col, dir);
+    });
+  });
+
+  document.querySelectorAll('details table').forEach(function(table){
+    defaultSort(table);
+    var th = table.querySelector('th[data-col="' + STATUS_COL + '"]');
+    if (th) { th.dataset.dir = 'asc'; var si = th.querySelector('.si'); if(si) si.textContent='↑'; }
+  });
+})();
+</script>
+</body>
+</html>

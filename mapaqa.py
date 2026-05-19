@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """mapaqa — monitor de puntos de control para plataformas mapainversiones."""
 
+import csv
 import html as _html
 import json
 import re
@@ -17,7 +18,9 @@ from typing import Optional
 
 TIMEOUT          = 15
 CHECKPOINTS_FILE = Path(__file__).parent / "checkpoints.yaml"
-REPORT_FILE      = Path(__file__).parent / "mapaqa_report.html"
+OUTPUT_DIR       = Path(__file__).parent / "output"
+REPORT_HTML      = OUTPUT_DIR / "mapaqa_report.html"
+REPORT_CSV       = OUTPUT_DIR / "mapaqa_report.csv"
 
 # checks implied by checkpoint type
 _TYPE_CHECKS: dict[str, list[str]] = {
@@ -718,11 +721,30 @@ def load_checkpoints(path: Path) -> list[dict]:
     return resolved
 
 
+def generate_csv(results: list[Result], ts: str) -> str:
+    import io
+    buf = io.StringIO()
+    w   = csv.writer(buf)
+    w.writerow(["timestamp", "country", "id", "label", "url",
+                "ok", "warn", "status_code", "elapsed_ms",
+                "issues", "warnings", "datasets_total", "datasets_stale"])
+    for r in results:
+        w.writerow([
+            ts, r.country, r.id, r.label, r.url,
+            int(r.ok), int(r.warn), r.status_code or "",
+            f"{r.elapsed_ms:.0f}" if r.elapsed_ms is not None else "",
+            "; ".join(r.issues), "; ".join(r.warnings),
+            len(r.datasets), sum(1 for d in r.datasets if d.stale),
+        ])
+    return buf.getvalue()
+
+
 def main(checkpoints_path: Path = CHECKPOINTS_FILE) -> int:
     if not checkpoints_path.exists():
         print(f"ERROR: no se encontró {checkpoints_path}", file=sys.stderr)
         return 1
 
+    OUTPUT_DIR.mkdir(exist_ok=True)
     checkpoints = load_checkpoints(checkpoints_path)
     print(f"Verificando {len(checkpoints)} puntos de control...", end="", flush=True)
 
@@ -736,9 +758,10 @@ def main(checkpoints_path: Path = CHECKPOINTS_FILE) -> int:
     ts = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())
     print_report(results)
 
-    html = generate_html(results, ts)
-    REPORT_FILE.write_text(html, encoding="utf-8")
-    print(f"{DIM}Reporte HTML → {REPORT_FILE}{RESET}\n")
+    REPORT_HTML.write_text(generate_html(results, ts), encoding="utf-8")
+    REPORT_CSV.write_text(generate_csv(results, ts), encoding="utf-8")
+    print(f"{DIM}Reporte HTML → {REPORT_HTML}{RESET}")
+    print(f"{DIM}Reporte CSV  → {REPORT_CSV}{RESET}\n")
 
     return 0 if all(r.ok for r in results) else 1
 
