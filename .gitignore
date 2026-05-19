@@ -1,0 +1,38 @@
+# Claude Code — todo el directorio y configuración
+.claude/
+CLAUDE.md
+CLAUDE_README.md
+
+# Launchers de Claude
+start-claude.sh
+start-claude.bat
+
+# Documentación y contexto de Claude
+docs/
+mapainversiones-ai-context/
+
+# Variables de entorno y credenciales
+.env
+.env.*
+exports
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Handoffs locales
+handoffs/*.local.md
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Salidas generadas
+mapaqa_report.html
+
+# Config legada
+checkpoints.json
+
+# Subdirectorio legado
+mapaqa/

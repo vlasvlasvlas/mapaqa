@@ -1,0 +1,88 @@
+# mapaqa — configuración de checkpoints
+# Prioridad: checkpoint > type_defaults > defaults
+
+defaults:
+  timeout_s: 15
+  ssl_verify: true
+
+type_defaults:
+  home:
+    response_time_ms: 10000
+
+  map:
+    response_time_ms: 10000
+
+  project_profile: {}   # solo uptime: si carga es OK, sin umbral de tiempo
+
+  open_data:
+    response_time_ms: 10000
+    max_age_days: 60
+
+checkpoints:
+
+  # ── República Dominicana ────────────────────────────────────────────────────
+  - id: do-home
+    type: home
+    country: DO
+    label: "MapaInversiones RD — Home"
+    url: "https://mapainversiones.gob.do/"
+
+  - id: do-datos-abiertos
+    type: open_data
+    country: DO
+    label: "MapaInversiones RD — Datos Abiertos"
+    url: "https://mapainversiones.gob.do/DatosAbiertos"
+    element_text: "Datos Abiertos"
+    scrape:
+      mode: json_api
+      api_url: "/api/ServiciosDatosAbiertos/ObtenerFuentesDatos"
+      items_path: "fuentesRecursos"
+      id_field: "idFuente"
+      name_field: "nombreFuente"
+      date_field: "fechaActualizacion"
+      date_format: "%d-%m-%Y"
+      base_url: "https://mapainversiones.gob.do"
+      card_split: "<!-- Begin OpenData item -->"
+      name_regex: '<h4 class="services-item-heading">([^<]+)</h4>'
+      link_regex: 'href="(/opendata/[^"]+)"'
+
+  - id: do-mapa
+    type: map
+    country: DO
+    label: "MapaInversiones RD — Mapa de Inversión"
+    url: "https://mapainversiones.gob.do/MapView"
+
+  - id: do-contratos
+    type: project_profile
+    country: DO
+    label: "MapaInversiones RD — Contratos"
+    url: "https://mapainversiones.gob.do/contratos"
+
+  - id: do-presupuesto
+    type: project_profile
+    country: DO
+    label: "MapaInversiones RD — Presupuesto"
+    url: "https://mapainversiones.gob.do/PresupuestoGeneral"
+
+  # ── Paraguay ────────────────────────────────────────────────────────────────
+  - id: py-home
+    type: home
+    country: PY
+    label: "Rindiendo Cuentas PY — Home"
+    url: "https://rindiendocuentas.gov.py/"
+    ssl_verify: false
+
+  - id: py-fuentes
+    type: open_data
+    country: PY
+    label: "Rindiendo Cuentas PY — Fuentes de datos"
+    url: "https://rindiendocuentas.gov.py/"
+    element_text: "Fuentes de los datos"
+    max_age_days: 365
+    ssl_verify: false
+    scrape:
+      card_split: '<div class="boxDataSource">'
+      name_regex: '<h4[^>]*>([^<]+)</h4>'
+      date_regex: 'Última actualización\s*</span>\s*<span>(\d{1,2}/\d{1,2}/\d{4})</span>'
+      date_format: "%d/%m/%Y"
+      fallback_link: "https://rindiendocuentas.gov.py/#s-data"
